@@ -10,4 +10,88 @@ if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
   source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
 fi
 
-# Customize to your needs...
+#########
+# NVM
+#########
+export NVM_DIR="$HOME/.nvm"
+[ -s "/usr/local/opt/nvm/nvm.sh" ] && . "/usr/local/opt/nvm/nvm.sh"  # This loads nvm
+[ -s "/usr/local/opt/nvm/etc/bash_completion" ] && . "/usr/local/opt/nvm/etc/bash_completion"  # This loads nvm bash_completion
+autoload -U add-zsh-hook
+load-nvmrc() {
+  local node_version="$(nvm version)"
+  local nvmrc_path="$(nvm_find_nvmrc)"
+
+  if [ -n "$nvmrc_path" ]; then
+    local nvmrc_node_version=$(nvm version "$(cat "${nvmrc_path}")")
+
+    if [ "$nvmrc_node_version" = "N/A" ]; then
+      nvm install
+    elif [ "$nvmrc_node_version" != "$node_version" ]; then
+      nvm use
+    fi
+  elif [ "$node_version" != "$(nvm version default)" ]; then
+    echo "Reverting to nvm default version"
+    nvm use default
+  fi
+}
+add-zsh-hook chpwd load-nvmrc
+load-nvmrc
+
+#######
+# Secrets
+#######
+source ~/.zshrc-secret
+
+#########
+# Aliases
+#########
+alias ll="ls -lhA"
+alias ..="cd .."
+alias v="vagrant"
+alias fuck='eval $(thefuck $(fc -ln -1)); history -r'
+alias cf-prod="cf login -u ${CF_EMAIL} -p ${CF_PW} -a api.cloud.migros.net --skip-ssl-validation"
+alias cf-test="cf login -u ${CF_EMAIL} -p ${CF_PW} -s test -a api.test-cloud.migros.net --skip-ssl-validation"
+alias cf-dev="cf login -u ${CF_EMAIL} -p ${CF_PW} -s dev -a api.test-cloud.migros.net --skip-ssl-validation"
+dconnect() {
+    docker exec -it $1 bash
+}
+alias dconnect=dconnect
+
+#########
+# Spaceship Prompt
+#########
+SPACESHIP_CHAR_SUFFIX=" "
+SPACESHIP_PROMPT_ORDER=(
+  time     #
+  vi_mode  # these sections will be
+  user     # before prompt char
+  host     #
+  dir
+  git
+  node
+  ruby
+  swift
+  php
+  golang
+  venv
+  pyenv
+  exec_time
+  line_sep
+  battery
+  exit_code
+  char
+)
+
+# USER
+SPACESHIP_USER_PREFIX="" # remove `with` before username
+SPACESHIP_USER_SUFFIX="" # remove space before host
+
+# HOST
+# Result will look like this:
+#   username@:(hostname)
+SPACESHIP_HOST_PREFIX="@:("
+SPACESHIP_HOST_SUFFIX=") "
+
+# DIR
+SPACESHIP_DIR_PREFIX='' # disable directory prefix, cause it's not the first section
+SPACESHIP_DIR_TRUNC='0' # show all directories
